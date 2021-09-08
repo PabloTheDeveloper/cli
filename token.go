@@ -18,9 +18,9 @@ type tokenIterator struct {
 
 func (tknIter tokenIterator) current() token {
 	if tknIter.pos >= 0 && tknIter.pos < len(tknIter.tokens) {
-		return nil
+		return tknIter.tokens[tknIter.pos]
 	}
-	return tknIter.tokens[tknIter.pos]
+	return nil
 }
 
 func (tknIter *tokenIterator) advance() {
@@ -61,7 +61,7 @@ func tokenify(words []string) tokenIterator {
 	ti := tokenIterator{}
 	for _, word := range words {
 		if strings.HasPrefix(word, "--") {
-			ti.tokens = append(ti.tokens, flagToken(word[1:]))
+			ti.tokens = append(ti.tokens, flagToken(word[2:]))
 		} else {
 			ti.tokens = append(ti.tokens, commandToken(word))
 		}

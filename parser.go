@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -10,7 +11,7 @@ type parser interface {
 
 type commandParser struct {
 	Command
-	*tokenSet
+	tokenSet
 }
 
 type tokenSet struct {
@@ -18,7 +19,7 @@ type tokenSet struct {
 	used  map[token]bool
 }
 
-func (set *tokenSet) get(tkn token) (parser, error) {
+func (set tokenSet) get(tkn token) (parser, error) {
 	if set.used[tkn] {
 		return nil, fmt.Errorf("'%s' already used", tkn)
 	}
@@ -28,8 +29,7 @@ func (set *tokenSet) get(tkn token) (parser, error) {
 }
 
 func (p *commandParser) setup() error {
-	// do flags here and setup and parsing here
-	p.tokenSet = &tokenSet{
+	p.tokenSet = tokenSet{
 		ready: map[token]parser{},
 		used:  map[token]bool{},
 	}
@@ -75,6 +75,7 @@ func (p *commandParser) parse(ti *tokenIterator, ec *ExecutableCommand) error {
 	}
 	ec.execute = p.GetExecutor()
 	ec.BoolFlags = map[string]bool{}
+	ti.advance()
 	var next parser
 	for tkn := ti.current(); tkn != nil; tkn = ti.current() {
 		switch token := tkn.(type) {
@@ -89,6 +90,9 @@ func (p *commandParser) parse(ti *tokenIterator, ec *ExecutableCommand) error {
 			flagParser, err := p.get(token)
 			if err != nil {
 				return err
+			}
+			if flagParser == nil {
+				return errors.New("no flag defined for token")
 			}
 			if err := flagParser.parse(ti, ec); err != nil {
 				return err
@@ -113,5 +117,6 @@ func (bfp *boolFlagParser) parse(ti *tokenIterator, ec *ExecutableCommand) error
 		return err
 	}
 	ec.BoolFlags[bfp.Label] = true
+	ti.advance()
 	return nil
 }
