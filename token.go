@@ -22,18 +22,12 @@ func (tknIter tokenIterator) current() token {
 	}
 	return nil
 }
-
-func (tknIter *tokenIterator) advance() {
-	tknIter.pos++
-}
+func (tknIter *tokenIterator) advance() { tknIter.pos++ }
 
 type commandToken string
 
-func (t commandToken) toString() string {
-	return string(t)
-}
-
-func (t commandToken) validate() error { /*TODO*/ return nil }
+func (t commandToken) toString() string { return string(t) }
+func (t commandToken) validate() error  { /*TODO*/ return nil }
 func (t commandToken) compare(cmp string) error {
 	if t.toString() != cmp {
 		return fmt.Errorf("command '%s' expected, command '%s' recieved", cmp, t)
@@ -43,19 +37,14 @@ func (t commandToken) compare(cmp string) error {
 
 type flagToken string
 
-func (t flagToken) toString() string {
-	return string(t)
-}
-
-func (t flagToken) validate() error { /*TODO*/ return nil }
-
+func (t flagToken) toString() string { return string(t) }
+func (t flagToken) validate() error  { /*TODO*/ return nil }
 func (t flagToken) compare(cmp string) error {
 	if t.toString() != cmp {
 		return fmt.Errorf("flag '%s' expected, flag '%s' recieved", cmp, t)
 	}
 	return nil
 }
-
 func tokenify(words []string) tokenIterator {
 	// TODO need to have better way
 	ti := tokenIterator{}

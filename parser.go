@@ -73,19 +73,22 @@ func (p *commandParser) parse(ti *tokenIterator, ec *ExecutableCommand) error {
 	if err := p.setup(); err != nil {
 		return err
 	}
-	ec.execute = p.GetExecutor()
+	ec.fn = p.GetExecutor()
 	ec.BoolFlags = map[string]bool{}
 	ti.advance()
-	var next parser
-	for tkn := ti.current(); tkn != nil; tkn = ti.current() {
+	stop := false
+	for tkn := ti.current(); tkn != nil && !stop; tkn = ti.current() {
 		switch token := tkn.(type) {
 		case commandToken:
 			cmdParser, err := p.get(token)
 			if err != nil {
 				return err
 			}
-			next = cmdParser
-			break
+			if cmdParser != nil {
+				ec.subcommand = &ExecutableCommand{}
+				return cmdParser.parse(ti, ec.subcommand)
+			}
+			return errors.New("unexpected command")
 		case flagToken:
 			flagParser, err := p.get(token)
 			if err != nil {
@@ -100,9 +103,6 @@ func (p *commandParser) parse(ti *tokenIterator, ec *ExecutableCommand) error {
 		default:
 			panic("Non commandToken and Non flagToken stumbled across")
 		}
-	}
-	if next != nil {
-		return next.parse(ti, ec.subcommand)
 	}
 	return nil
 }
